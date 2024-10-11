@@ -11,3 +11,4 @@ training:
 agent:
   exploration_steps: 500000
   exploration_strategy: opax
+  safety_slack: 40
