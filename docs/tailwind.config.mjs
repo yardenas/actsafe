@@ -11,8 +11,9 @@ export default {
           css: {
             "--tw-prose-body": theme("colors.slate.800"),
             "--tw-prose-bullets": theme("colors.slate.800"),
-            "--tw-prose-pre-bg": theme("colors.pink.900"),
+            "--tw-prose-pre-code": theme("colors.slate.800"),
             "--tw-prose-links": theme("colors.blue.500"),
+            "--tw-prose-pre-bg": theme("colors.zinc.100"),
             a: {
               color: theme("colors.blue.500"),
               textDecoration: "none",

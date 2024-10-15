@@ -10,7 +10,7 @@ export default defineConfig({
   integrations: [tailwind(), icon(), mdx(), react()],
   markdown: {
     shikiConfig: {
-      theme: "github-light"
+      theme: "slack-ochin"
     }
   }
 });
