@@ -24,7 +24,7 @@ import CodeBlock from "../components/CodeBlock.astro";
 export const components = { pre: CodeBlock }
 
 import outside from "../assets/outside.mp4";
-import transformer from "../assets/transformer.webp";
+import humanoid from "../assets/humanoid-optimized.gif";
 
 <Header
   title={frontmatter.title}
@@ -77,14 +77,20 @@ import transformer from "../assets/transformer.webp";
     },
     {
       name: "arXiv",
-      url: "",
+      url: "https://arxiv.org/abs/2410.09486",
       icon: "academicons:arxiv",
     },
   ]}
   />
 
-<Video source={outside} />
+<Image src={humanoid} alt="Demo on Humanoid Robot" />
 
 ## Abstract
 
 Reinforcement learning (RL) is ubiquitous in the development of modern AI systems. However, state-of-the-art RL agents require extensive, and potentially unsafe, interactions with their environments to learn effectively. These limitations confine RL agents to simulated environments, hindering their ability to learn directly in real-world settings. In this work, we present ActSafe, a novel model-based RL algorithm for safe and efficient exploration. ActSafe learns a well-calibrated probabilistic model of the system and plans optimistically w.r.t. the epistemic uncertainty about the unknown dynamics, while enforcing pessimism w.r.t. the safety constraints. Under regularity assumptions on the constraints and dynamics, we show that ActSafe guarantees safety during learning while also obtaining a near-optimal policy in finite time. In addition, we propose a practical variant of ActSafe that builds on latest model-based RL advancements and enables safe exploration even in high-dimensional settings such as visual control. We empirically show that ActSafe obtains state-of-the-art performance in difficult exploration tasks on standard safe deep RL benchmarks while ensuring safety during learning.
+
+## Contributions
+* We propose ActSafe, a novel model-based RL algorithm for safe exploration in continuous state-action spaces. ActSafe maintains a pessimistic set of safe policies and optimistically selects policies within this set that yield trajectories with the largest model epistemic uncertainty. 
+* We show that when the dynamics lie in a reproducing kernel Hilbert space, ActSafe guarantees safe exploration. In addition, we provide a sample-complexity bound for ActSafe, illustrating that ActSafe obtains <LaTeX inline formula="\epsilon"/>-optimal policies in a finite number of episodes. To the best of our knowledge, we are the first to show safety and finite sample complexity for safe exploration in model-based RL with continuous state-action spaces.
+* In our experiments, we demonstrate that ActSafe, when combined with a Gaussian process dynamics model, achieves efficient and safe exploration. Additionally, we show that ActSafe scales to high-dimensional environments.
+

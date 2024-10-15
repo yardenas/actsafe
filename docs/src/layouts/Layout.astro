@@ -41,24 +41,10 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
 
     <title>{title}</title>
   </head>
-  <body class="p-6 pt-12 flex flex-col gap-4 items-center max-w-[50rem] m-auto">
+  <body
+    class="p-6 pt-12 flex flex-col gap-4 items-center max-w-[50rem] m-auto prose prose-paper"
+  >
     <slot />
-    <footer class="m-auto">
-      <p class="text-zinc-500 text-sm">
-        This page was built using <a
-          href="https://github.com/RomanHauksson/academic-project-astro-template"
-          >Roman Hauksson's academic project page template</a
-        >, which was adapted from <a
-          href="https://github.com/eliahuhorwitz/Academic-project-page-template"
-          >Eliahu Horwitz's template</a
-        >, which was adapted from <a href="https://nerfies.github.io/"
-          >Keunhong Park's project page for <i>Nerfies</i></a
-        >. It is licensed under a <a
-          href="http://creativecommons.org/licenses/by-sa/4.0/"
-          >Creative Commons Attribution-ShareAlike 4.0 International License</a
-        >.
-      </p>
-    </footer>
   </body>
 </html>
 
@@ -67,17 +53,17 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
     font-family: "Noto Sans", sans-serif;
     @apply text-zinc-900 bg-zinc-50;
   }
-  a {
-    @apply text-blue-500 hover:underline;
+  .prose p {
+    @apply w-full;
+    margin-top: 0; /* Adjust as needed */
+    margin-bottom: 0; /* Adjust as needed */
   }
-  p {
-    @apply text-lg w-full;
-  }
-  h1 {
+  .prose h1 {
     @apply text-5xl text-center font-medium;
   }
-  h2 {
+  .prose h2 {
     @apply w-full text-3xl font-bold mt-4;
+    margin-bottom: 0;
   }
 </style>
 
