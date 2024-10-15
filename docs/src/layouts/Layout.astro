@@ -54,7 +54,7 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
     @apply text-zinc-900 bg-zinc-50;
   }
   .prose p {
-    @apply w-full;
+    @apply w-full text-lg;
     margin-top: 0; /* Adjust as needed */
     margin-bottom: 0; /* Adjust as needed */
   }
@@ -64,6 +64,9 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
   .prose h2 {
     @apply w-full text-3xl font-bold mt-4;
     margin-bottom: 0;
+  }
+  .prose li {
+    @apply text-lg;
   }
 </style>
 
