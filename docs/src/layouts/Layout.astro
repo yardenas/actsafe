@@ -51,7 +51,7 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
 <style is:global>
   body {
     font-family: "Noto Sans", sans-serif;
-    @apply text-zinc-900 bg-zinc-50;
+    @apply text-zinc-900 bg-white;
   }
   .prose p {
     @apply w-full text-lg;
@@ -67,6 +67,10 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
   }
   .prose li {
     @apply text-lg;
+  }
+  .prose ul {
+    margin-top: 0;
+    margin-bottom: 0;
   }
 </style>
 

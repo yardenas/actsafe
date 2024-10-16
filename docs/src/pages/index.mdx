@@ -26,6 +26,10 @@ export const components = { pre: CodeBlock }
 import humanoid from "../assets/humanoid-optimized.gif";
 import push from "../assets/point-push.gif";
 import cartpole from "../assets/cartpole-safe.gif";
+import expansion from "../assets/expansion.svg";
+import pendulum from "../assets/pendulum-exploration.svg"
+import cartpoleLearning from "../assets/learn-curves-cartpole-exploration.svg"
+import safetyGym from "../assets/learning-curves-sparse.svg"
 
 <Header
   title={frontmatter.title}
@@ -92,12 +96,12 @@ import cartpole from "../assets/cartpole-safe.gif";
     </div>
     <div class="w-1/3">
       <div class="w-80 h-[18em] overflow-hidden">
-        <Image src={push} alt="Demo on Humanoid Robot" class="object-cover w-full h-full" />
+        <Image src={push} alt="Demo on SafetyGym" class="object-cover w-full h-full" />
       </div>
     </div>
     <div class="w-1/3">
       <div class="w-80 h-[18em] overflow-hidden">
-        <Image src={cartpole} alt="Demo on Humanoid Robot" class="object-cover w-full h-full" />
+        <Image src={cartpole} alt="Demo on Cartpole" class="object-cover w-full h-full" />
       </div>
     </div>
   </div>
@@ -105,13 +109,61 @@ import cartpole from "../assets/cartpole-safe.gif";
 
 ## Abstract
 
-Reinforcement learning (RL) is ubiquitous in the development of modern AI systems. However, state-of-the-art RL agents require extensive, and potentially unsafe, interactions with their environments to learn effectively. These limitations confine RL agents to simulated environments, hindering their ability to learn directly in real-world settings. In this work, we present ActSafe, a novel model-based RL algorithm for safe and efficient exploration. ActSafe learns a well-calibrated probabilistic model of the system and plans optimistically w.r.t. the epistemic uncertainty about the unknown dynamics, while enforcing pessimism w.r.t. the safety constraints. Under regularity assumptions on the constraints and dynamics, we show that ActSafe guarantees safety during learning while also obtaining a near-optimal policy in finite time. In addition, we propose a practical variant of ActSafe that builds on latest model-based RL advancements and enables safe exploration even in high-dimensional settings such as visual control. We empirically show that ActSafe obtains state-of-the-art performance in difficult exploration tasks on standard safe deep RL benchmarks while ensuring safety during learning.
+Reinforcement learning (RL) is ubiquitous in the development of modern AI systems. 
+However, state-of-the-art RL agents require extensive, and potentially unsafe, interactions with their environments to learn effectively.
+These limitations confine RL agents to simulated environments, hindering their ability to learn directly in real-world settings.
+In this work, we present ActSafe, a novel model-based RL algorithm for safe and efficient exploration.
+ActSafe maintains a pessimistic set of safe policies and optimistically selects policies within this set that yield trajectories with the largest model epistemic uncertainty. 
 
-## Contributions
-* We propose ActSafe, a novel model-based RL algorithm for safe exploration in continuous state-action spaces. ActSafe maintains a pessimistic set of safe policies and optimistically selects policies within this set that yield trajectories with the largest model epistemic uncertainty. 
-* We show that when the dynamics lie in a reproducing kernel Hilbert space, ActSafe guarantees safe exploration. In addition, we provide a sample-complexity bound for ActSafe, illustrating that ActSafe obtains <LaTeX inline formula="\epsilon"/>-optimal policies in a finite number of episodes. To the best of our knowledge, we are the first to show safety and finite sample complexity for safe exploration in model-based RL with continuous state-action spaces.
-* In our experiments, we demonstrate that ActSafe, when combined with a Gaussian process dynamics model, achieves efficient and safe exploration. Additionally, we show that ActSafe scales to high-dimensional environments.
+## Key Idea
+ActSafe learns a probabilistic model of the dynamics, including its epistemic uncertainty, and leverages it to collect trajectories that maximize the information gain about the dynamics.
+To ensure safety, ActSafe plans pessimistically w.r.t. its set of plausible models and thus implicitly maintains a (pessimistic) set of policies that are deemed to be safe with high probability.
 
+<Figure caption="Schematic illustration of the expansion process. We expand the safe set at each iteration
+by reducing our uncertainty around policies at the boundary of the previous pessimistic safe set. The pale blue area depicts
+the reachable set after H expansions.">
+<Image src={expansion} alt="Expansion Process" class="object-cover w-full h-full" />
+</Figure>
+
+Concretely we want to solve
+<LaTeX formula="   \pi_n,  f_n = \argmax_{\pi \in \mathcal{S}_n, f \in \mathcal{M}_n} \underbrace{\mathbb{E}_{\tau^{\pi, f}}\left[\sum_{t=0}^{T-1} \|{\sigma_{n-1}(s_t, \hat{s}_t)\|}\right]}_{:= J_{r_n}(\pi, f)},"/>
+Where <LaTeX formula="\sigma_{n - 1}" inline="true"/> represents our epistemic uncertainty over a model of the dynamics.
+Intuitevly, selecting a policy <LaTeX formula="\pi_n" inline="true"/> that "navigates" to states with high uncertainty allows us to collect information more efficiently, all while staying within the pessimistic safe set of policies <LaTeX formula="\mathcal{S_n}" inline="true"/>.
+
+## Experiments
+### Pendulum
+We evaluate ActSafe on the Pendulum environment.
+We visualize the trajectories of ActSafe and its unsafe variant in the state space during exploration. 
+We observe that both algorithms cover the state space well, however, ActSafe remains within the safety boundary during learning whereas its unsafe version violates the constraints.
+<Figure caption="Safe exploration in the PendulumSwingup task.
+Each plot above visualizes trajectories considered during exploration across all past learning episodes.
+The red box in the plot depicts the safety boundary in the state space. ActSafe maintains safety throughout learning.">
+<Image src={pendulum} alt="Pendulum safe exploration" class="object-cover w-full h-full" />
+</Figure>
+
+
+### Cartpole
+
+We evaluate on CartpoleSwingupSparse from the RWRL benchmark, where the goal is to swing up the pendulum, while keeping the cart at the center.
+We add penalty for large actions to make exploration even more challenging.
+We compare ActSafe with three baselines:
+* Uniform, which samples actions uniformly at random during exploration.
+* Optimistic, which uses the model epistemic uncertainty estimates as exploration reward bonuses.
+* Greedy, which optimizes the extrinsic reward directly.
+
+<Figure caption="Hard exploration on Cartpole.">
+<Image width="500" src={cartpoleLearning} alt="Cartpole Exploration"/>
+</Figure>
+
+#### Sparse-reward Navigation
+In this experiment, we examine the influence of using an intrinsic reward in hard exploration tasks.
+To this end, we extend tasks from SafetyGym and introduce three new tasks with sparse rewards, i.e., without any reward shaping to guide the agent to the goal.
+We provide more details about the rewards in the figure below. In the figure below we compare ActSafe with a Greedy baseline that collects trajectories only based on the sparse extrinsic reward.
+As shown, ActSafe substantially outperforms Greedy in all tasks, while violating the constraint only once in the GotoGoal task.
+
+<Figure caption="Hard exploration in navigation tasks.">
+<Image src={safetyGym} alt="Expansion Process" class="w-full"/>
+</Figure>
 ## BibTeX citation
 
 ```
