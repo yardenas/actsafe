@@ -166,6 +166,7 @@ class ActSafe:
                     transition.reward,
                     next_cost,
                     transition.done,
+                    transition.terminal,
                 )
         add_to_buffer(
             self.replay_buffer,

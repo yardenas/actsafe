@@ -43,7 +43,7 @@ class ReplayBuffer:
             (capacity, max_length),
             dtype=self.dtype,
         )
-        self.done = np.ones(
+        self.terminated = np.ones(
             (capacity, max_length),
             dtype=bool,
         )
@@ -69,7 +69,7 @@ class ReplayBuffer:
             ),
             "reward": np.zeros((self.max_length, self.num_rewards), dtype=self.dtype),
             "cost": np.zeros(self.max_length, dtype=self.dtype),
-            "done": np.zeros(self.max_length, dtype=bool),
+            "terminated": np.zeros(self.max_length, dtype=bool),
             "current_step": 0,
         }
 
@@ -96,13 +96,15 @@ class ReplayBuffer:
             :current_step
         ]
         self.cost[self.episode_id, :current_step] = episode_data["cost"][:current_step]
-        self.done[self.episode_id, :current_step] = episode_data["done"][:current_step]
+        self.terminated[self.episode_id, :current_step] = episode_data["terminated"][
+            :current_step
+        ]
 
         # Set episode length
         self.episode_lengths[self.episode_id] = current_step
 
         # Mark remaining timesteps as done
-        self.done[self.episode_id, current_step:] = True
+        self.terminated[self.episode_id, current_step:] = True
 
         # Increment counters
         self.episode_id += 1
@@ -131,7 +133,7 @@ class ReplayBuffer:
             episode_data["action"][current_step] = step_data.action[i]
             episode_data["reward"][current_step] = step_data.reward[i]
             episode_data["cost"][current_step] = step_data.cost[i]
-            episode_data["done"][current_step] = step_data.done[i]
+            episode_data["terminated"][current_step] = step_data.done[i]
 
             # If episode terminated
             if step_data.done[i]:
@@ -146,7 +148,7 @@ class ReplayBuffer:
 
                 # Check if we've reached max length
                 if current_step + 1 >= self.max_length:
-                    episode_data["done"][current_step] = True
+                    episode_data["terminated"][current_step] = True
                     self._commit_episode(worker_id)
 
     def _sample_batch(
@@ -189,8 +191,8 @@ class ReplayBuffer:
             ]
             o = self.observation[episode_ids[:, None], timestep_ids]
             o, next_o = o[:, :-1], o[:, 1:]
-            done = self.done[episode_ids[:, None], timestep_ids[:, :-1]]
-            yield o, next_o, a, r, c, done
+            terminated = self.terminated[episode_ids[:, None], timestep_ids[:, :-1]]
+            yield o, next_o, a, r, c, terminated, terminated
 
     def sample(self, n_batches: int) -> Iterator[TrajectoryData]:
         if self.empty:

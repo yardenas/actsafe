@@ -21,7 +21,7 @@ class EpochSummary:
         rewards, costs = [], []
         for trajectory_batch in self._data:
             for trajectory in trajectory_batch:
-                *_, r, c, _ = trajectory.as_numpy()
+                *_, r, c, _, _ = trajectory.as_numpy()
                 rewards.append(r)
                 costs.append(c)
         # Stack data from all tasks on the first axis,

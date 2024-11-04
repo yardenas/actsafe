@@ -31,6 +31,7 @@ def add_to_buffer(buffer, transition, reward_scale):
             transition.reward * reward_scale,
             transition.cost,
             transition.done,
+            transition.terminal,
         )
     )
 

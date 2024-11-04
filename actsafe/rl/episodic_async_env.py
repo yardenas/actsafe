@@ -113,7 +113,8 @@ class EpisodicAsync:
         return (
             np.asarray(observations),
             np.asarray(rewards),
-            np.asarray(truncated, dtype=bool) | np.asarray(terminals, dtype=bool),
+            np.asarray(terminals, dtype=bool),
+            np.asarray(truncated, dtype=bool),
             infos,
         )
 
