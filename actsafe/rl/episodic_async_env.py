@@ -12,6 +12,7 @@ import numpy as np
 from gymnasium.spaces import Box
 from gymnasium.wrappers.clip_action import ClipAction
 from gymnasium.wrappers.rescale_action import RescaleAction
+from gymnasium.wrappers.autoreset import AutoResetWrapper
 from gymnasium.wrappers.time_limit import TimeLimit
 
 from actsafe.rl import wrappers
@@ -183,7 +184,7 @@ class EpisodicAsync:
 
 def _worker(ctor, conn, time_limit, action_repeat):
     try:
-        env = TimeLimit(cloudpickle.loads(ctor)(), time_limit)
+        env = AutoResetWrapper(TimeLimit(cloudpickle.loads(ctor)(), time_limit))
         if isinstance(env.action_space, Box):
             env = RescaleAction(env, -1.0, 1.0)  # type: ignore
             env.action_space = Box(-1.0, 1.0, env.action_space.shape, np.float32)

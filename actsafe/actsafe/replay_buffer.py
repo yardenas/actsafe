@@ -128,13 +128,10 @@ class ReplayBuffer:
 
             # Store current observation
             episode_data["observation"][current_step] = step_data.observation[i]
-
-            # If not the first step, store previous step's action, reward, cost, done
-            if current_step > 0:
-                episode_data["action"][current_step - 1] = step_data.action[i]
-                episode_data["reward"][current_step - 1] = step_data.reward[i]
-                episode_data["cost"][current_step - 1] = step_data.cost[i]
-                episode_data["done"][current_step - 1] = step_data.done[i]
+            episode_data["action"][current_step] = step_data.action[i]
+            episode_data["reward"][current_step] = step_data.reward[i]
+            episode_data["cost"][current_step] = step_data.cost[i]
+            episode_data["done"][current_step] = step_data.done[i]
 
             # If episode terminated
             if step_data.done[i]:

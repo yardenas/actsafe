@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import equinox as eqx
 
-from actsafe.rl.trajectory import TrajectoryData
+from actsafe.rl.trajectory import Transition
 
 
 class PRNGSequence:
@@ -22,14 +22,15 @@ class PRNGSequence:
         return keys[1:]
 
 
-def add_to_buffer(buffer, trajectory, reward_scale):
+def add_to_buffer(buffer, transition, reward_scale):
     buffer.add(
-        TrajectoryData(
-            trajectory.observation,
-            trajectory.next_observation,
-            trajectory.action,
-            trajectory.reward * reward_scale,
-            trajectory.cost,
+        Transition(
+            transition.observation,
+            transition.next_observation,
+            transition.action,
+            transition.reward * reward_scale,
+            transition.cost,
+            transition.done,
         )
     )
 

@@ -32,13 +32,13 @@ def interact(
                 trajectory.frames.append(images[i])
         actions = agent(observations, train)
         next_observations, rewards, done, infos = environment.step(actions)
-        costs = np.array([info.get("cost", 0) for info in infos])
+        costs = np.array(get_costs(infos))
         transition = Transition(
             observations, next_observations, actions, rewards, costs, done
         )
         for i, trajectory in enumerate(trajectories):
             trajectory.transitions.append(Transition(*map(lambda x: x[i], transition)))
-        agent.observe_transition(transition)
+        agent.observe_transition(transition, infos)
         observations = next_observations
         step += environment.action_repeat
         track_rewards += rewards * (~done)
@@ -51,6 +51,17 @@ def interact(
                 episodes.append(trajectory)
                 trajectories[i] = Trajectory()
     return episodes, step
+
+
+def get_costs(infos):
+    out = []
+    for info in infos:
+        if "final_info" in info:
+            cost = info["final_info"].get("cost", 0)
+        else:
+            cost = info.get("cost", 0)
+        out.append(cost)
+    return out
 
 
 def epoch(

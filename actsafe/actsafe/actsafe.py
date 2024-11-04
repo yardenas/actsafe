@@ -152,16 +152,31 @@ class ActSafe:
         )
         return np.asarray(actions)
 
-    def observe(self, trajectory: TrajectoryData) -> None:
+    def observe_transition(self, transition: Transition, infos: dict) -> None:
+        for i, info in enumerate(infos):
+            if transition.done[i]:
+                next_obs = transition.next_observation.copy()
+                next_obs[i] = info["final_observation"]
+                next_cost = transition.cost.copy()
+                next_cost[i] = info["final_info"].get("cost", 0)
+                transition = Transition(
+                    transition.observation,
+                    next_obs,
+                    transition.action,
+                    transition.reward,
+                    next_cost,
+                    transition.done,
+                )
         add_to_buffer(
             self.replay_buffer,
-            trajectory,
+            transition,
             self.config.training.scale_reward,
         )
-        self.state = jax.tree_map(lambda x: jnp.zeros_like(x), self.state)
 
-    def observe_transition(self, transition: Transition) -> None:
-        pass
+        def replace_where_done(state):
+            return jnp.where(transition.done[:, None], jnp.zeros_like(state), state)
+
+        self.state = jax.tree_map(replace_where_done, self.state)
 
     def update(self):
         total_steps = self.config.agent.update_steps
@@ -173,13 +188,6 @@ class ActSafe:
         ):
             total_steps = self.config.agent.zero_shot_steps
         for batch in self.replay_buffer.sample(total_steps):
-            batch = TrajectoryData(
-                batch.observation,
-                batch.next_observation,
-                batch.action,
-                batch.reward * self.config.agent.reward_scale,
-                batch.cost,
-            )
             inferred_rssm_states = self.update_model(batch)
             initial_states = inferred_rssm_states.reshape(
                 -1, inferred_rssm_states.shape[-1]
