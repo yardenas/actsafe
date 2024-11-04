@@ -32,7 +32,10 @@ class Trajectory:
         # instead of list of transitions.
         o, next_o, a, r, c, done = zip(*self.transitions)
         # Stack on axis=1 to keep batch dimension first, and time axis second.
-        stack = lambda x: np.stack(x, axis=1)
+        if r[0].ndim > 0:
+            stack = lambda x: np.stack(x, axis=1)
+        else:
+            stack = lambda x: np.stack(x, axis=0)
         data = TrajectoryData(
             stack(o), stack(next_o), stack(a), stack(r), stack(c), stack(done)
         )

@@ -117,7 +117,7 @@ class Trainer:
             summary, wall_time, steps = self._run_training_epoch(
                 self.config.training.steps_per_epoch
             )
-            objective, cost_return, feasibilty = summary.metrics
+            objective, cost_return = summary.metrics
             if isinstance(objective, np.ndarray):
                 metrics = {
                     f"train/objective_{i}": val for i, val in enumerate(objective)
@@ -126,7 +126,6 @@ class Trainer:
                 metrics = {"train/objective": objective}
             metrics |= {
                 "train/cost_return": cost_return,
-                "train/feasibility": feasibilty,
                 "train/fps": steps / wall_time,
             }
             report = agent.report(summary, epoch, self.step)
