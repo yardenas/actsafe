@@ -81,7 +81,7 @@ class Trainer:
             self.config.training.parallel_envs,
             self.config.training.time_limit,
             self.config.training.action_repeat,
-        )
+        ) if self.config.training.async_parallel else self.make_env()
         if self.seeds is None:
             self.seeds = PRNGSequence(self.config.training.seed)
         if self.agent is None:
