@@ -115,7 +115,7 @@ class Trainer:
         for epoch in range(epoch, epochs or self.config.training.epochs):
             _LOG.info(f"Training epoch #{epoch}")
             summary, wall_time, steps = self._run_training_epoch(
-                self.config.training.episodes_per_epoch
+                self.config.training.steps_per_epoch
             )
             objective, cost_return, feasibilty = summary.metrics
             if isinstance(objective, np.ndarray):
@@ -141,7 +141,7 @@ class Trainer:
 
     def _run_training_epoch(
         self,
-        episodes_per_epoch: int,
+        steps_per_epoch: int,
     ) -> tuple[EpochSummary, float, int]:
         agent, env, logger, seeds = self.agent, self.env, self.logger, self.seeds
         assert (
@@ -155,7 +155,7 @@ class Trainer:
         summary, step = acting.epoch(
             agent,
             env,
-            episodes_per_epoch,
+            steps_per_epoch,
             True,
             self.step,
             self.config.training.render_episodes,
@@ -233,9 +233,9 @@ class UnsupervisedTrainer(Trainer):
         return self
 
     def _run_training_epoch(
-        self, episodes_per_epoch: int
+        self, steps_per_epoch: int
     ) -> tuple[EpochSummary, float, int]:
-        outs = super()._run_training_epoch(episodes_per_epoch)
+        outs = super()._run_training_epoch(steps_per_epoch)
         if (
             self.step >= self.config.training.exploration_steps
             and self.test_tasks is None
