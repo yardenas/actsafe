@@ -20,6 +20,10 @@ def make(cfg: DictConfig) -> EnvironmentFactory:
         from actsafe.benchmark_suites.humanoid_bench import make
 
         make_env = make(cfg)
+    elif domain_name == "isaaclab":
+        from actsafe.benchmark_suites.isaaclab import make
+
+        make_env = make(cfg)
     else:
         raise NotImplementedError(f"Environment {domain_name} not implemented")
     return make_env

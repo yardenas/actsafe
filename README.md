@@ -13,7 +13,6 @@
 3. `source venv/bin/activate`
 4. `pip install -e .`
 
-
 ## Usage
 
 `python train_actsafe.py --help`

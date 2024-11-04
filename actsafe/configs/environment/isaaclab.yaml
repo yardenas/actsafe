@@ -1,0 +1,7 @@
+isaaclab:
+  task: Isaac-Velocity-Flat-Anymal-D-v0
+  headless: true
+  image_observation:
+    enabled: false
+    image_size: [64, 64]
+    image_format: "channels_first"

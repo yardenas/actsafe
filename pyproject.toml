@@ -28,7 +28,6 @@ safe-adaptation-gym = { git = "https://git@github.com/lasgroup/safe-adaptation-g
 jmp = { git = "https://github.com/deepmind/jmp" }
 tensorboard = "^2.16.2"
 
-
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
