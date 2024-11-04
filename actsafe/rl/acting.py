@@ -46,10 +46,10 @@ def interact(
         pbar.set_postfix({"reward": track_rewards.mean(), "cost": track_costs.mean()})
         if render:
             render_episodes = max(render_episodes - done.any(), 0)
-        for ep_done, trajectory in zip(done, trajectories):
+        for i, (ep_done, trajectory) in enumerate(zip(done, trajectories)):
             if ep_done:
                 episodes.append(trajectory)
-                trajectory = Trajectory()
+                trajectories[i] = Trajectory()
     return episodes, step
 
 

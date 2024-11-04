@@ -8,7 +8,7 @@ writers:
 
 training:
   epochs: 2
-  episodes_per_epoch: 1
+  steps_per_epoch: 500
   time_limit: 100
   action_repeat: 2
   parallel_envs: 5
