@@ -10,8 +10,6 @@ from actsafe import benchmark_suites
 def config():
     cfg = make_test_config(
         [
-            "training.action_repeat=2",
-            "training.time_limit=100"
             "environment=dm_cartpole",
             "environment.dm_cartpole.image_observation.enabled=false",
         ]
@@ -52,6 +50,6 @@ def test_epoch(trainer):
     assert new_trainer.seeds is not None
     assert (new_trainer.seeds.key == trainer.seeds.key).all()
     with new_trainer as new_trainer:
-        new_trainer_summary, *_ = new_trainer._run_training_epoch(1)
-    old_trainer_summary, *_ = trainer._run_training_epoch(1)
+        new_trainer_summary, *_ = new_trainer._run_training_epoch(trainer.config.training.steps_per_epoch)
+    old_trainer_summary, *_ = trainer._run_training_epoch(trainer.config.training.steps_per_epoch)
     assert old_trainer_summary.metrics == new_trainer_summary.metrics
