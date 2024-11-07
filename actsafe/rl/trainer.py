@@ -76,12 +76,16 @@ class Trainer:
         log_path = os.getcwd()
         self.logger = TrainingLogger(self.config)
         self.state_writer = StateWriter(log_path, _TRAINING_STATE)
-        self.env = episodic_async_env.EpisodicAsync(
-            self.make_env,
-            self.config.training.parallel_envs,
-            self.config.training.time_limit,
-            self.config.training.action_repeat,
-        ) if self.config.training.async_parallel else self.make_env()
+        self.env = (
+            episodic_async_env.EpisodicAsync(
+                self.make_env,
+                self.config.training.parallel_envs,
+                self.config.training.time_limit,
+                self.config.training.action_repeat,
+            )
+            if self.config.training.async_parallel
+            else self.make_env()
+        )
         if self.seeds is None:
             self.seeds = PRNGSequence(self.config.training.seed)
         if self.agent is None:
@@ -114,7 +118,7 @@ class Trainer:
         assert logger is not None and state_writer is not None and agent is not None
         for epoch in range(epoch, epochs or self.config.training.epochs):
             _LOG.info(f"Training epoch #{epoch}")
-            summary, wall_time, steps = self._run_training_epoch(
+            summary, wall_time = self._run_training_epoch(
                 self.config.training.steps_per_epoch
             )
             objective, cost_return = summary.metrics
@@ -126,7 +130,7 @@ class Trainer:
                 metrics = {"train/objective": objective}
             metrics |= {
                 "train/cost_return": cost_return,
-                "train/fps": steps / wall_time,
+                "train/fps": self.config.training.steps_per_epoch / wall_time,
             }
             report = agent.report(summary, epoch, self.step)
             report.metrics.update(metrics)
@@ -141,7 +145,7 @@ class Trainer:
     def _run_training_epoch(
         self,
         steps_per_epoch: int,
-    ) -> tuple[EpochSummary, float, int]:
+    ) -> tuple[EpochSummary, float]:
         agent, env, logger, seeds = self.agent, self.env, self.logger, self.seeds
         assert (
             env is not None
@@ -151,20 +155,18 @@ class Trainer:
         )
         start_time = time.time()
         env.reset(seed=int(next(seeds)[0].item()))
-        summary, step = acting.epoch(
+        summary = acting.epoch(
             agent,
             env,
             steps_per_epoch,
             True,
-            self.step,
             self.config.training.render_episodes,
         )
-        steps = step - self.step
-        self.step = step
+        self.step += steps_per_epoch
         next(seeds)
         end_time = time.time()
         wall_time = end_time - start_time
-        return summary, wall_time, steps
+        return summary, wall_time
 
     @classmethod
     def from_pickle(cls, config: DictConfig, state_path: str) -> "Trainer":
@@ -231,9 +233,7 @@ class UnsupervisedTrainer(Trainer):
             self.env.reset(options={"task": self.test_tasks})
         return self
 
-    def _run_training_epoch(
-        self, steps_per_epoch: int
-    ) -> tuple[EpochSummary, float, int]:
+    def _run_training_epoch(self, steps_per_epoch: int) -> tuple[EpochSummary, float]:
         outs = super()._run_training_epoch(steps_per_epoch)
         if (
             self.step >= self.config.training.exploration_steps
