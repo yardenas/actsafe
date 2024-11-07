@@ -74,9 +74,9 @@ class ActSafe:
         )
         self.prng = PRNGSequence(config.training.seed)
         action_dim = int(np.prod(action_space.shape))
-        assert len(observation_space.shape) == 3
+        assert len(observation_space.shape) == 1 or len(observation_space.shape) == 3
         self.model = WorldModel(
-            image_shape=observation_space.shape,
+            state_shape=observation_space.shape,
             action_dim=action_dim,
             key=next(self.prng),
             ensemble_size=config.agent.sentiment.ensemble_size,
@@ -272,5 +272,8 @@ def _prepare_features(batch: TrajectoryData) -> tuple[rssm.Features, jax.Array]:
     return features, actions
 
 
-def preprocess(image):
-    return image / 255.0 - 0.5
+def preprocess(input: np.ndarray) -> np.ndarray:
+    if input.ndim == 4:
+        return input / 255.0 - 0.5
+    else:
+        return input

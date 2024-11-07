@@ -17,7 +17,7 @@ from actsafe.rl.utils import nest_vmap
 _EMBEDDING_SIZE = 1024
 
 
-class Encoder(eqx.Module):
+class ImageEncoder(eqx.Module):
     cnn_layers: list[eqx.nn.Conv2d]
 
     def __init__(
@@ -50,6 +50,45 @@ class Encoder(eqx.Module):
             x = jnn.elu(layer(x))
         x = self.cnn_layers[-1](x)
         x = x.ravel()
+        return x
+
+
+class ProprioceptionEncoder(eqx.Module):
+    mlp_layers: list[eqx.nn.Linear]
+
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        hidden_shape: list[int],
+        *,
+        key: jax.Array,
+    ):
+        keys = jax.random.split(key, len(hidden_shape) + 1)
+        in_features = in_features
+        self.mlp_layers = []
+        for i, (key, hidden_size) in enumerate(zip(keys[:-1], hidden_shape)):
+            self.mlp_layers.append(
+                eqx.nn.Linear(
+                    in_features=in_features,
+                    out_features=hidden_size,
+                    key=key,
+                )
+            )
+            self.mlp_layers.append(jnn.elu)
+            in_features = hidden_size
+        self.mlp_layers.append(
+            eqx.nn.Linear(
+                in_features=in_features,
+                out_features=out_features,
+                key=keys[-1],
+            )
+        )
+
+    def __call__(self, observation: jax.Array) -> jax.Array:
+        x = observation
+        for layer in self.mlp_layers:
+            x = layer(x)
         return x
 
 
@@ -98,6 +137,46 @@ class ImageDecoder(eqx.Module):
         return output
 
 
+class ProprioceptionDecoder(eqx.Module):
+    mlp_layers: list[eqx.nn.Linear]
+
+    def __init__(
+        self,
+        state_dim: int,
+        out_features: int,
+        hidden_shape: list[int],
+        *,
+        key: jax.Array,
+    ):
+        keys = jax.random.split(key, len(hidden_shape) + 1)
+        in_features = state_dim
+        self.mlp_layers = []
+        for i, (key, hidden_size) in enumerate(zip(keys[:-1], hidden_shape)):
+            self.mlp_layers.append(
+                eqx.nn.Linear(
+                    in_features=in_features,
+                    out_features=hidden_size,
+                    key=key,
+                )
+            )
+            self.mlp_layers.append(jnn.elu)
+            in_features = hidden_size
+        self.mlp_layers.append(
+            eqx.nn.Linear(
+                in_features=in_features,
+                out_features=out_features,
+                key=keys[-1],
+            )
+        )
+
+
+    def __call__(self, flat_state: jax.Array) -> jax.Array:
+        x = flat_state
+        for layer in self.mlp_layers:
+            x = layer(x)
+        return x
+
+
 class InferenceResult(NamedTuple):
     state: State
     image: jax.Array
@@ -108,13 +187,13 @@ class InferenceResult(NamedTuple):
 
 class WorldModel(eqx.Module):
     cell: RSSM
-    encoder: Encoder
-    image_decoder: ImageDecoder
+    encoder: ProprioceptionEncoder | ImageEncoder
+    decoder: ProprioceptionDecoder | ImageDecoder
     reward_cost_decoder: eqx.nn.MLP
 
     def __init__(
         self,
-        image_shape: tuple[int, int, int],
+        state_shape: int | tuple[int, int, int],
         action_dim: int,
         deterministic_size: int,
         stochastic_size: int,
@@ -128,7 +207,7 @@ class WorldModel(eqx.Module):
         (
             cell_key,
             encoder_key,
-            image_decoder_key,
+            decoder_key,
             reward_cost_decoder_key,
         ) = jax.random.split(key, 4)
         self.cell = RSSM(
@@ -141,9 +220,32 @@ class WorldModel(eqx.Module):
             initialization_scale,
             key=cell_key,
         )
-        self.encoder = Encoder(image_channels=image_shape[0], key=encoder_key)
         state_dim = stochastic_size + deterministic_size
-        self.image_decoder = ImageDecoder(state_dim, image_shape, key=image_decoder_key)
+        if len(state_shape) == 1:
+            self.encoder = ProprioceptionEncoder(
+                in_features=state_shape[0],
+                out_features=_EMBEDDING_SIZE,
+                hidden_shape=[128, 128],
+                key=encoder_key,
+            )
+            self.decoder = ProprioceptionDecoder(
+                state_dim,
+                out_features=state_shape[0],
+                hidden_shape=[128, 128],
+                key=decoder_key,
+            )
+        elif len(state_shape) == 3:
+            self.encoder = ImageEncoder(
+                image_channels=state_shape[0],
+                key=encoder_key,
+            )
+            self.decoder = ImageDecoder(
+                state_dim,
+                output_shape=state_shape,
+                key=decoder_key,
+                )
+        else:
+            raise ValueError("state_shape must be 1D or 3D")
         # num_rewards + 1 = cost + reward
         # width = 400, layers = 2
         self.reward_cost_decoder = eqx.nn.MLP(
@@ -179,7 +281,7 @@ class WorldModel(eqx.Module):
             (obs_embeddings, actions, keys),
         )
         reward_cost = jax.vmap(self.reward_cost_decoder)(states.flatten())
-        image = jax.vmap(self.image_decoder)(states.flatten())
+        image = jax.vmap(self.decoder)(states.flatten())
         return InferenceResult(states, image, reward_cost, posteriors, priors)
 
     def infer_state(
@@ -342,7 +444,7 @@ def evaluate_model(
         actions[0, conditioning_length:],
     )
     prediction = marginalize_prediction(prediction)
-    y_hat = jax.vmap(model.image_decoder)(prediction.next_state)
+    y_hat = jax.vmap(model.decoder)(prediction.next_state)
     y = observations[0, conditioning_length:]
     error = jnp.abs(y - y_hat) / 2.0 - 0.5
     normalize = lambda image: ((image + 0.5) * 255).astype(jnp.uint8)
