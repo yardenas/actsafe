@@ -30,7 +30,7 @@ def interact(
             for i, trajectory in enumerate(trajectories):
                 trajectory.frames.append(images[i])
         actions = agent(observations, train)
-        next_observations, rewards, terminal, truncated, infos = environment.step(
+        next_observations, rewards, terminated, truncated, infos = environment.step(
             actions
         )
         costs = np.array(get_costs(infos))
@@ -41,9 +41,9 @@ def interact(
             rewards,
             costs,
             truncated,
-            terminal,
+            terminated,
         )
-        done = terminal | truncated
+        done = terminated | truncated
         for i, trajectory in enumerate(trajectories):
             trajectory.transitions.append(Transition(*map(lambda x: x[i], transition)))
         agent.observe_transition(transition, infos)

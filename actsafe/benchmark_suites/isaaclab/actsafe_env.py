@@ -78,7 +78,7 @@ class ActSafeEnvWrapper:
             actions = torch.tensor(actions, device=self.env.device, requires_grad=False)
             obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
         
-        dones = (terminated | truncated).to(dtype=torch.bool)
+        terminated, truncated = terminated.to(dtype=torch.bool), truncated.to(dtype=torch.bool)
         obs = obs_dict["policy"]
         extras["observations"] = obs_dict
         if not self.env.cfg.is_finite_horizon:
@@ -98,7 +98,7 @@ class ActSafeEnvWrapper:
             }
             for i in range(self.env.num_envs)
         ]
-        return obs.cpu().numpy(), rew.cpu().numpy(), dones.cpu().numpy(), infos
+        return obs.cpu().numpy(), rew.cpu().numpy(), terminated.cpu().numpy(), truncated.cpu().numpy(), infos
 
     @property
     def max_episode_length(self) -> int:
