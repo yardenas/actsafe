@@ -1,5 +1,5 @@
 from gymnasium.spaces import Box
-from omni.isaac.lab.envs.manager_based_rl_env import ManagerBasedRLEnv, ManagerBasedRLEnvCfg
+from omni.isaac.lab.envs.manager_based_rl_env import ManagerBasedRLEnv
 import torch
 
 
