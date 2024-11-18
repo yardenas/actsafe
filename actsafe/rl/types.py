@@ -15,7 +15,7 @@ from numpy import typing as npt
 from omegaconf import DictConfig
 
 from actsafe.rl.epoch_summary import EpochSummary
-from actsafe.rl.trajectory import Transition
+from actsafe.rl.trajectory import Transition, TrajectoryData
 
 FloatArray = npt.NDArray[Union[np.float32, np.float64]]
 
@@ -36,7 +36,10 @@ class Agent(Protocol):
     def __call__(self, observation: FloatArray, train: bool = False) -> FloatArray:
         ...
 
-    def observe_transition(self, transition: Transition, info: dict) -> None:
+    def observe(self, trajectory: TrajectoryData, idx: int) -> None:
+        ...
+
+    def observe_transition(self, transition: Transition, info: Any) -> None:
         ...
 
     def report(self, summary: EpochSummary, epoch: int, step: int) -> Report:
