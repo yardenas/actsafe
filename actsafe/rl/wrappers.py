@@ -22,14 +22,14 @@ class ActionRepeat(Wrapper):
             total_cost += info.get("cost", 0.0)
             current_step += 1
             done = truncated or terminal
+        info["steps"] = current_step
+        info["cost"] = total_cost
         if done:
             new_obs, new_info = self.env.reset()
-            new_info["final_observation"] = obs
+            new_info["final_observation"] = obs.copy()
             new_info["final_info"] = info
             obs = new_obs
             info = new_info
-        info["steps"] = current_step
-        info["cost"] = total_cost
         return obs, total_reward, terminal, truncated, info
 
 
