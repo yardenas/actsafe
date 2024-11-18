@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import equinox as eqx
 import jax
@@ -152,30 +152,20 @@ class ActSafe:
         )
         return np.asarray(actions)
 
-    def observe_transition(self, transition: Transition, infos: dict) -> None:
-        for i, info in enumerate(infos):
-            if transition.done[i]:
-                next_obs = transition.next_observation.copy()
-                next_obs[i] = info["final_observation"]
-                next_cost = transition.cost.copy()
-                next_cost[i] = info["final_info"].get("cost", 0)
-                transition = Transition(
-                    transition.observation,
-                    next_obs,
-                    transition.action,
-                    transition.reward,
-                    next_cost,
-                    transition.done,
-                    transition.terminal,
-                )
+    def observe_transition(self, transition: Transition, info: Any) -> None:
+        pass
+
+    def observe(self, trajectory: TrajectoryData, idx: int) -> None:
         add_to_buffer(
             self.replay_buffer,
-            transition,
+            trajectory,
             self.config.training.scale_reward,
         )
+        done = jnp.zeros(self.config.training.parallel_envs, dtype=bool)
+        done = done.at[idx].set(1)
 
         def replace_where_done(state):
-            return jnp.where(transition.done[:, None], jnp.zeros_like(state), state)
+            return jnp.where(done[:, None], jnp.zeros_like(state), state)
 
         self.state = jax.tree_map(replace_where_done, self.state)
 

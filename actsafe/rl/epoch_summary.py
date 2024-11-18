@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Any, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
-from numpy import typing as npt
 
 from actsafe.rl.trajectory import Trajectory
 
@@ -22,13 +21,13 @@ class EpochSummary:
         for trajectory_batch in self._data:
             for trajectory in trajectory_batch:
                 *_, r, c, _, _ = trajectory.as_numpy()
-                rewards.append(r)
-                costs.append(c)
+                rewards.append(r.sum())
+                costs.append(c.sum())
         # Stack data from all tasks on the first axis,
-        # giving a [#tasks, #episodes, #time, ...] shape.
+        # giving a [batch_size * num_episodes, ] shape.
         stacked_rewards = np.stack(rewards)
         stacked_costs = np.stack(costs)
-        return _objective(stacked_rewards), _objective(stacked_costs)
+        return stacked_rewards.mean(), stacked_costs.mean()
 
     @property
     def videos(self):
@@ -44,7 +43,3 @@ class EpochSummary:
 
     def extend(self, samples: List[Trajectory]) -> None:
         self._data.append(samples)
-
-
-def _objective(rewards: npt.NDArray[Any]) -> float:
-    return float(rewards.sum(-1).mean())

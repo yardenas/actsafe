@@ -12,7 +12,6 @@ import numpy as np
 from gymnasium.spaces import Box
 from gymnasium.wrappers.clip_action import ClipAction
 from gymnasium.wrappers.rescale_action import RescaleAction
-from gymnasium.wrappers.autoreset import AutoResetWrapper
 from gymnasium.wrappers.time_limit import TimeLimit
 
 from actsafe.rl import wrappers
@@ -190,7 +189,7 @@ def _worker(ctor, conn, time_limit, action_repeat):
             env = RescaleAction(env, -1.0, 1.0)  # type: ignore
             env.action_space = Box(-1.0, 1.0, env.action_space.shape, np.float32)
             env = ClipAction(env)  # type: ignore
-        env = AutoResetWrapper(wrappers.ActionRepeat(env, action_repeat))  # type: ignore
+        env = wrappers.ActionRepeat(env, action_repeat)  # type: ignore
         while True:
             try:
                 # Only block for short times to have keyboard exceptions be raised.
