@@ -48,6 +48,13 @@ class ReplayBuffer:
             ),
             dtype=self.dtype,
         )
+        self.terminal = np.zeros(
+            (
+                capacity,
+                max_length,
+            ),
+            dtype=self.dtype,
+        )
         self._valid_episodes = 0
         self.rs = np.random.RandomState(seed)
         self.batch_size = batch_size
@@ -70,8 +77,13 @@ class ReplayBuffer:
                 trajectory.terminal,
             )
         for data, val in zip(
-            (self.action, self.reward, self.cost),
-            (trajectory.action, trajectory.reward, trajectory.cost),
+            (self.action, self.reward, self.cost, self.terminal),
+            (
+                trajectory.action,
+                trajectory.reward,
+                trajectory.cost,
+                trajectory.terminal,
+            ),
         ):
             data[episode_slice] = val[:batch_size].astype(self.dtype)
         self.observation[episode_slice] = trajectory.observation[:batch_size].astype(
@@ -80,39 +92,45 @@ class ReplayBuffer:
         self.episode_id = (self.episode_id + batch_size) % capacity
         self._valid_episodes = min(self._valid_episodes + batch_size, capacity)
 
+    def _sample_batch_idx(self, batch_size, sequence_length):
+        time_limit = self.observation.shape[1]
+        first_terminal = self.terminal.argmax(axis=1)
+        max_length = np.where(first_terminal == 0, time_limit, first_terminal)
+        valid_episodes_lengths = max_length[: self._valid_episodes]
+        valid_episodes = np.where(valid_episodes_lengths >= sequence_length)[0]
+        timesteps = []
+        episodes = []
+        for _ in range(batch_size):
+            episode_id = self.rs.choice(valid_episodes)
+            episodes.append(episode_id)
+            low = self.rs.randint(
+                valid_episodes_lengths[episode_id] - sequence_length - 1
+            )
+            timestep_ids = low + np.arange(sequence_length + 1)
+            timesteps.append(timestep_ids)
+        return np.asarray(episodes), np.asarray(timesteps)
+
     def _sample_batch(
         self,
         batch_size: int,
         sequence_length: int,
-        valid_episodes: int | None = None,
     ):
-        if valid_episodes is not None:
-            valid_episodes = valid_episodes
-        else:
-            valid_episodes = self._valid_episodes
         time_limit = self.observation.shape[1]
         assert time_limit > sequence_length
         while True:
-            low = self.rs.choice(time_limit - sequence_length - 1, batch_size)
-            timestep_ids = low[:, None] + np.tile(
-                np.arange(sequence_length + 1),
-                (batch_size, 1),
+            episode_ids, timestep_ids = self._sample_batch_idx(
+                batch_size, sequence_length
             )
-            episode_ids = self.rs.choice(valid_episodes, size=batch_size)
             # Sample a sequence of length H for the actions, rewards and costs,
             # and a length of H + 1 for the observations (which is needed for
             # bootstrapping)
-            a, r, c = [
+            a, r, c, t = [
                 x[episode_ids[:, None], timestep_ids[:, :-1]]
-                for x in (
-                    self.action,
-                    self.reward,
-                    self.cost,
-                )
+                for x in (self.action, self.reward, self.cost, self.terminal)
             ]
             o = self.observation[episode_ids[:, None], timestep_ids]
             o, next_o = o[:, :-1], o[:, 1:]
-            yield o, next_o, a, r, c, np.zeros_like(r), np.zeros_like(r)
+            yield o, next_o, a, r, c, t, t
 
     def sample(self, n_batches: int) -> Iterator[TrajectoryData]:
         if self.empty:
