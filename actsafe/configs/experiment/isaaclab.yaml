@@ -6,6 +6,6 @@ training:
   async_parallel: false
 
 agent:
-  train_every: 409600
+  train_every: 4096
   exploration_steps: 0
   offline_steps: 0

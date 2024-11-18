@@ -45,6 +45,7 @@ def normalize(observation, mean, std):
 class Count:
     def __init__(self, n: int, steps: int = 1):
         self.count = 0
+        assert n >= steps, "n must be greater than or equal to steps"
         self.n = (n // steps) * steps
         self.steps = steps
 
