@@ -4,7 +4,7 @@ import torch
 
 
 class ManagerBasedActSafeEnv(ManagerBasedRLEnv):
-    
+
     def step(self, actions):
         # process actions
         self.action_manager.process_action(actions.to(self.device))
@@ -60,30 +60,30 @@ class ManagerBasedActSafeEnv(ManagerBasedRLEnv):
         # -- compute observations
         # note: done after reset to get the correct observations for reset envs
         self.obs_buf = self.observation_manager.compute()
-        
+
         return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
-        
+
 
 class ActSafeEnvWrapper:
-    
+
     def __init__(self, env: ManagerBasedActSafeEnv):
         self.env = env
-        
+
     def reset(self, seed=None):
         obs, _ = self.env.reset(seed=seed)
         return obs["policy"].cpu().numpy()
-    
+
     def step(self, actions):
         with torch.no_grad():
             actions = torch.tensor(actions, device=self.env.device, requires_grad=False)
             obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
-        
+
         terminated, truncated = terminated.to(dtype=torch.bool), truncated.to(dtype=torch.bool)
         obs = obs_dict["policy"]
         extras["observations"] = obs_dict
         if not self.env.cfg.is_finite_horizon:
             extras["time_outs"] = truncated
-        
+
         infos = [
             {
                 "log": {k: v.cpu().numpy() for k, v in extras["log"].items() if isinstance(v, torch.Tensor)},
@@ -103,19 +103,19 @@ class ActSafeEnvWrapper:
     @property
     def max_episode_length(self) -> int:
         return self.env.max_episode_length
-    
+
     @property
     def num_envs(self) -> int:
         return self.env.num_envs
-    
+
     @property
     def observation_space(self) -> Box:
         return self.env.single_observation_space["policy"]
-    
+
     @property
     def action_space(self) -> Box:
         return self.env.single_action_space
-    
+
     @property
     def action_repeat(self) -> int:
         return 1

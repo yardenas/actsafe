@@ -95,12 +95,12 @@ class ProprioceptionEncoder(eqx.Module):
 class ImageDecoder(eqx.Module):
     linear: eqx.nn.Linear
     cnn_layers: list[eqx.nn.ConvTranspose2d]
-    output_shape: tuple[int, int, int] = eqx.static_field()
+    output_shape: tuple[int] | tuple[int, int, int] = eqx.static_field()
 
     def __init__(
         self,
         state_dim: int,
-        output_shape: tuple[int, int, int],
+        output_shape: tuple[int] | tuple[int, int, int],
         *,
         key: jax.Array,
     ):
@@ -193,7 +193,7 @@ class WorldModel(eqx.Module):
 
     def __init__(
         self,
-        state_shape: int | tuple[int, int, int],
+        state_shape: tuple[int] | tuple[int, int, int],
         action_dim: int,
         deterministic_size: int,
         stochastic_size: int,

@@ -8,7 +8,7 @@ from actsafe.rl.types import EnvironmentFactory
 def make(cfg: DictConfig) -> EnvironmentFactory:
     import argparse
     from omni.isaac.lab.app import AppLauncher
-    
+
     # add argparse arguments
     parser = argparse.ArgumentParser()
     # append AppLauncher cli args
@@ -22,7 +22,7 @@ def make(cfg: DictConfig) -> EnvironmentFactory:
 
     # launch omniverse app
     app_launcher = AppLauncher(args_cli)
-    simulation_app = app_launcher.app
+    app_launcher.app
 
     import torch
     from omni.isaac.lab_tasks.manager_based.locomotion.velocity.config.anymal_d.flat_env_cfg import AnymalDFlatEnvCfg
