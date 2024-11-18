@@ -88,6 +88,7 @@ class JsonlWriter:
         self.log_dir = log_dir
 
     def log(self, summary: dict[str, float], step: int):
+        summary = {k: float(v) for k, v in summary.items()}
         with open(os.path.join(self.log_dir, f"{_SUMMARY_DEFAULT}.jsonl"), "a") as file:
             file.write(json.dumps({"step": step, **summary}) + "\n")
 

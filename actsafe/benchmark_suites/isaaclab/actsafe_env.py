@@ -74,9 +74,11 @@ class ActSafeEnvWrapper:
         return obs["policy"].cpu().numpy()
     
     def step(self, actions):
-        with torch.inference_mode():
-            actions = torch.tensor(actions, device=self.env.device, requires_grad=False)
-            obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+        actions = torch.tensor(actions, device=self.env.device, requires_grad=False)
+        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+        
+        rew = rew.detach()
+        extras["log"] = {k: v.detach() for k, v in extras["log"].items() if isinstance(v, torch.Tensor)}
         
         terminated, truncated = terminated.to(dtype=torch.bool), truncated.to(dtype=torch.bool)
         obs = obs_dict["policy"]
