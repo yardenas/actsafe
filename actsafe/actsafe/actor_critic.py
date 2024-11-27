@@ -84,6 +84,12 @@ class Critic(eqx.Module):
         return x
 
 
+class SafetyCritic(Critic):
+    def __call__(self, observation: Any) -> jax.Array:
+        x = super().__call__(observation)
+        return jnn.softplus(x)
+
+
 def actor_entropy(actor, states):
     log_prob = lambda state: actor(state).sample_and_log_prob(
         seed=jax.random.PRNGKey(0)

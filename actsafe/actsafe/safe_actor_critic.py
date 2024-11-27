@@ -11,7 +11,7 @@ from actsafe.common.learner import Learner
 from actsafe.common.mixed_precision import apply_mixed_precision
 from actsafe.actsafe.rssm import ShiftScale
 from actsafe.actsafe.sentiment import Sentiment
-from actsafe.actsafe.actor_critic import ContinuousActor, Critic, actor_entropy
+from actsafe.actsafe.actor_critic import ContinuousActor, Critic, SafetyCritic, actor_entropy
 from actsafe.opax import normalized_epistemic_uncertainty
 from actsafe.rl.types import Model, RolloutFn
 from actsafe.rl.utils import nest_vmap
@@ -68,9 +68,8 @@ class SafeModelBasedActorCritic:
             **actor_config,
             key=actor_key,
         )
-        make_critic = lambda key: Critic(state_dim=state_dim, **critic_config, key=key)
-        self.critic = make_critic(critic_key)
-        self.safety_critic = make_critic(safety_critic_key)
+        self.critic = Critic(state_dim=state_dim, **critic_config, key=critic_key)
+        self.safety_critic = SafetyCritic(state_dim=state_dim, **critic_config, key=safety_critic_key)
         self.actor_learner = Learner(self.actor, actor_optimizer_config)
         self.critic_learner = Learner(self.critic, critic_optimizer_config)
         self.safety_critic_learner = Learner(
