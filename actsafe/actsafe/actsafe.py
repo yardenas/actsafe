@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 
 from actsafe.common.learner import Learner
 from actsafe.actsafe import rssm
-from actsafe.actsafe.exploration import UniformExploration, make_exploration
+from actsafe.actsafe.exploration import make_exploration
 from actsafe.actsafe.make_actor_critic import make_actor_critic
 from actsafe.actsafe.multi_reward import MultiRewardBridge
 from actsafe.actsafe.replay_buffer import ReplayBuffer
@@ -94,12 +94,13 @@ class ActSafe:
             make_sentiment(self.config.agent.sentiment.objective_optimism),
             make_sentiment(self.config.agent.sentiment.constraint_pessimism),
         )
+        exploration_key = next(self.prng)
         self.exploration = make_exploration(
             config,
             action_dim,
-            next(self.prng),
+            exploration_key,
         )
-        self.offline = UniformExploration(action_dim)
+        self.offline = make_exploration(config, action_dim, exploration_key)
         self.state = AgentState.init(
             config.training.parallel_envs, self.model.cell, action_dim
         )
