@@ -53,6 +53,7 @@ evaluate_model: false
 exploration_strategy: uniform
 exploration_steps: 5000
 offline_steps: 200000
+offline_init_stddev: 0.
 learn_model_steps: null
 exploration_reward_scale: 10.0
 exploration_epistemic_scale: 1.

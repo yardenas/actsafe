@@ -7,6 +7,7 @@ import numpy as np
 from gymnasium.spaces import Box
 from omegaconf import DictConfig
 
+from actsafe.actsafe.actor_critic import ContinuousActor
 from actsafe.common.learner import Learner
 from actsafe.actsafe import rssm
 from actsafe.actsafe.exploration import make_exploration
@@ -100,7 +101,15 @@ class ActSafe:
             action_dim,
             exploration_key,
         )
-        self.offline = make_exploration(config, action_dim, exploration_key)
+        self.offline = ContinuousActor(
+            config.agent.actor.n_layers,
+            config.agent.model.stochastic_size + config.agent.model.deterministic_size,
+            action_dim,
+            config.agent.actor.hidden_size,
+            config.agent.offline_init_stddev,
+            config.agent.actor.initialization_scale,
+            key=exploration_key,
+        )
         self.state = AgentState.init(
             config.training.parallel_envs, self.model.cell, action_dim
         )
@@ -134,7 +143,7 @@ class ActSafe:
         if train and self.should_train() and not self.replay_buffer.empty:
             self.update()
         if self.should_collect_offline():
-            policy_fn = self.offline.get_policy()
+            policy_fn = eqx.filter_jit(self.offline.act)
         else:
             policy_fn = (
                 self.exploration.get_policy()
