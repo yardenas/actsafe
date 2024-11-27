@@ -179,6 +179,9 @@ class WorldModel(eqx.Module):
             (obs_embeddings, actions, keys),
         )
         reward_cost = jax.vmap(self.reward_cost_decoder)(states.flatten())
+        reward, cost = reward_cost[..., :-1], reward_cost[..., -1]
+        cost = jnn.softplus(cost)
+        reward_cost = jnp.concatenate([reward, cost[..., None]], -1)
         image = jax.vmap(self.image_decoder)(states.flatten())
         return InferenceResult(states, image, reward_cost, posteriors, priors)
 
@@ -234,6 +237,7 @@ class WorldModel(eqx.Module):
         # Ensemble axis before time axis.
         out, priors = _ensemble_first((out, priors))
         reward, cost = out[..., :-1], out[..., -1]
+        cost = jnn.softplus(cost)
         out = Prediction(trajectory.flatten(), reward, cost)
         return out, priors
 
