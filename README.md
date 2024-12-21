@@ -1,19 +1,84 @@
-# ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning
+# ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning 🧭
+
+**Safe and efficient reinforcement learning!**
+
+Reinforcement learning (RL) has become a cornerstone in the development of cutting-edge AI systems. However, traditional RL methods often require extensive, and potentially unsafe, interactions with their environment—a major obstacle for real-world applications. **ActSafe** addresses this challenge by introducing a novel model-based RL algorithm that combines **safety constraints** with **active exploration** to achieve both safety and efficiency.
+
+### Key Idea 🌐
+- **Safe Exploration**: ActSafe maintains a pessimistic set of safe policies to ensure high-probability safety.
+- **Efficient Learning**: Optimistically selects policies that maximize information gain about the dynamics.
+- **Probabilistic Modeling**: Leverages a probabilistic model of dynamics and epistemic uncertainty for intelligent planning.
+
+For a detailed overview, visit our [project webpage](https://yardenas.github.io/actsafe/).
+
+## Requirements 🛠
+
+- **Python** • Version 3.10+
+- **pip** • Python package installer
+
+## Installation 📝
+
+Get started with ActSafe in just a few steps:
+
+### Using pip
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/actsafe.git
+   cd actsafe
+   ```
+2. Create a virtual environment:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -e .
+   ```
+
+### Using Poetry
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/actsafe.git
+   cd actsafe
+   ```
+2. Install dependencies and create a virtual environment with Poetry:
+   ```bash
+   poetry install
+   ```
+3. Activate the virtual environment:
+   ```bash
+   poetry shell
+   ```
 
 
-## Requirements
+## Usage 🔧
 
-- Python 3.10+ (ensure that you have the correct version installed)
-- `pip` (Python package installer)
+Run the training script with:
+```bash
+python train_actsafe.py --help
+```
+This will display all available options and configurations.
 
-## Installation
+## Citation 🔗
 
-1. Clone the repository
-2. `python3 -m venv venv`
-3. `source venv/bin/activate`
-4. `pip install -e .`
+If you use ActSafe in your research, please cite our work:
+```bibtex
+@misc{as2024actsafeactiveexplorationsafety,
+      title={ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning}, 
+      author={Yarden As and Bhavya Sukhija and Lenart Treven and Carmelo Sferrazza and Stelian Coros and Andreas Krause},
+      year={2024},
+      eprint={2410.09486},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2410.09486}, 
+}
+```
+
+## Learn More 🔍
+- **Project Webpage**: [https://yardenas.github.io/actsafe/](https://yardenas.github.io/actsafe/)
+- **Contact**: For questions or feedback, please open an issue on GitHub or reach out via the project webpage.
 
 
-## Usage
-
-`python train_actsafe.py --help`
