@@ -1,0 +1,184 @@
+---
+layout: ../layouts/Layout.astro
+title: "ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning"
+description: How to explore dynamic environments safely?
+favicon: /favicon.svg
+thumbnail: /screenshot.png
+---
+
+import { Image } from "astro:assets";
+
+import Layout from "../layouts/Layout.astro";
+
+import Header from "../components/Header.astro";
+import TwoColumns from "../components/TwoColumns.astro";
+import Video from "../components/Video.astro";
+import YouTubeVideo from "../components/YouTubeVideo.astro";
+import PDF from "../components/PDF.astro";
+import Figure from "../components/Figure.astro";
+import LaTeX from "../components/LaTeX.astro";
+import SmallCaps from "../components/SmallCaps.astro";
+import Splat from "../components/Splat.tsx"
+
+import CodeBlock from "../components/CodeBlock.astro";
+export const components = { pre: CodeBlock }
+
+import humanoid from "../assets/humanoid-optimized.gif";
+import push from "../assets/point-push.gif";
+import cartpole from "../assets/cartpole-safe.gif";
+import expansion from "../assets/expansion.svg";
+import pendulum from "../assets/pendulum-exploration.svg"
+import cartpoleLearning from "../assets/learn-curves-cartpole-exploration.svg"
+import safetyGym from "../assets/learning-curves-sparse.svg"
+
+<Header
+  title={frontmatter.title}
+  authors={[
+    {
+      name: "Yarden As",
+      url: "https://yas.pub",
+      institution: "ETH Zurich",
+      notes: ["*"],
+    },
+    {
+      name: "Bhavya Sukhija",
+      url: "https://sukhijab.github.io/",
+      institution: "ETH Zurich",
+      notes: ["*"],
+    },
+    {
+      name: "Lenart Treven",
+      url: "https://lenarttreven.github.io/",
+      institution: "ETH Zurich",
+    },
+    {
+      name: "Carmelo Sferrazza",
+      url: "https://sferrazza.cc/",
+      institution: "UC Berkeley",
+    },
+    {
+      name: "Stelian Coros",
+      url: "https://crl.ethz.ch/people/coros/index.html",
+      institution: "ETH Zurich",
+    },
+    {
+      name: "Andreas Krause",
+      url: "https://las.inf.ethz.ch/krausea",
+      institution: "ETH Zurich",
+    },
+  ]}
+  conference="ICLR 2025"
+  notes={[
+    {
+      symbol: "*",
+      text: "Equal Contribution",
+    },
+  ]}
+  links={[
+    {
+      name: "Code",
+      url: "https://github.com/yardenas/actsafe",
+      icon: "mdi:github",
+    },
+    {
+      name: "arXiv",
+      url: "https://arxiv.org/abs/2410.09486",
+      icon: "academicons:arxiv",
+    },{
+      name: "Paper",
+      url: "https://openreview.net/forum?id=aKRADWBJ1I&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2025%2FConference%2FAuthors%23your-submissions)",
+      icon: "ri:file-pdf-2-line",
+    },
+  ]}
+  />
+<div class="container mx-auto py-10">
+  <div class="flex flex-col lg:flex-row justify-center lg:space-x-4 space-y-4 lg:space-y-0">
+    <div class="w-full lg:w-1/3 flex justify-center">
+      <div class="w-25 overflow-hidden">
+        <Image src={humanoid} alt="Demo on Humanoid Robot" class="object-cover w-full h-full" />
+      </div>
+    </div>
+    <div class="w-full lg:w-1/3 flex justify-center">
+      <div class="w-25 overflow-hidden">
+        <Image src={push} alt="Demo on SafetyGym" class="object-cover w-full h-full" />
+      </div>
+    </div>
+    <div class="w-full lg:w-1/3 flex justify-center">
+      <div class="w-25 overflow-hidden">
+        <Image src={cartpole} alt="Demo on Cartpole" class="object-cover w-full h-full" />
+      </div>
+    </div>
+  </div>
+</div>
+
+## Abstract
+
+Reinforcement learning (RL) is ubiquitous in the development of modern AI systems. 
+However, state-of-the-art RL agents require extensive, and potentially unsafe, interactions with their environments to learn effectively.
+These limitations confine RL agents to simulated environments, hindering their ability to learn directly in real-world settings.
+In this work, we present ActSafe, a novel model-based RL algorithm for safe and efficient exploration.
+ActSafe maintains a pessimistic set of safe policies and optimistically selects policies within this set that yield trajectories with the largest model epistemic uncertainty. 
+
+## Key Idea
+ActSafe learns a probabilistic model of the dynamics, including its epistemic uncertainty, and leverages it to collect trajectories that maximize the information gain about the dynamics.
+To ensure safety, ActSafe plans pessimistically w.r.t. its set of plausible models and thus implicitly maintains a (pessimistic) set of policies that are deemed to be safe with high probability.
+
+<Figure caption="Schematic illustration of the expansion process. We expand the safe set at each iteration
+by reducing our uncertainty around policies at the boundary of the previous pessimistic safe set. The pale blue area depicts
+the reachable set after H expansions.">
+<Image src={expansion} alt="Expansion Process" class="object-cover w-full h-full" />
+</Figure>
+
+Concretely we want to solve
+<LaTeX formula="   \pi_n,  f_n = \argmax_{\pi \in \mathcal{S}_n, f \in \mathcal{M}_n} \underbrace{\mathbb{E}_{\tau^{\pi, f}}\left[\sum_{t=0}^{T-1} \|{\sigma_{n-1}(s_t, \hat{s}_t)\|}\right]}_{:= J_{r_n}(\pi, f)},"/>
+Where <LaTeX formula="\sigma_{n - 1}" inline="true"/> represents our epistemic uncertainty over a model of the dynamics.
+Intuitevly, selecting a policy <LaTeX formula="\pi_n" inline="true"/> that "navigates" to states with high uncertainty allows us to collect information more efficiently, all while staying within the pessimistic safe set of policies <LaTeX formula="\mathcal{S_n}" inline="true"/>.
+
+## Experiments
+### Pendulum
+We evaluate ActSafe on the Pendulum environment.
+We visualize the trajectories of ActSafe and its unsafe variant in the state space during exploration. 
+We observe that both algorithms cover the state space well, however, ActSafe remains within the safety boundary during learning whereas its unsafe version violates the constraints.
+<Figure caption="Safe exploration in the PendulumSwingup task.
+Each plot above visualizes trajectories considered during exploration across all past learning episodes.
+The red box in the plot depicts the safety boundary in the state space. ActSafe maintains safety throughout learning.">
+<Image src={pendulum} alt="Pendulum safe exploration" class="object-cover w-full h-full" />
+</Figure>
+
+
+### Cartpole
+
+We evaluate on CartpoleSwingupSparse from the RWRL benchmark, where the goal is to swing up the pendulum, while keeping the cart at the center.
+We add penalty for large actions to make exploration even more challenging.
+We compare ActSafe with three baselines:
+* Uniform, which samples actions uniformly at random during exploration.
+* Optimistic, which uses the model epistemic uncertainty estimates as exploration reward bonuses.
+* Greedy, which optimizes the extrinsic reward directly.
+
+<Figure caption="Hard exploration on Cartpole.">
+<Image width="500" src={cartpoleLearning} alt="Cartpole Exploration"/>
+</Figure>
+
+#### Sparse-reward Navigation
+In this experiment, we examine the influence of using an intrinsic reward in hard exploration tasks.
+To this end, we extend tasks from SafetyGym and introduce three new tasks with sparse rewards, i.e., without any reward shaping to guide the agent to the goal.
+We provide more details about the rewards in the figure below. In the figure below we compare ActSafe with a Greedy baseline that collects trajectories only based on the sparse extrinsic reward.
+As shown, ActSafe substantially outperforms Greedy in all tasks, while violating the constraint only once in the GotoGoal task.
+
+<Figure caption="Hard exploration in navigation tasks.">
+<Image src={safetyGym} alt="Expansion Process" class="w-full"/>
+</Figure>
+
+## Cite
+
+```
+@misc{as2024actsafeactiveexplorationsafety,
+      title={ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning}, 
+      author={Yarden As and Bhavya Sukhija and Lenart Treven and Carmelo Sferrazza and Stelian Coros and Andreas Krause},
+      year={2024},
+      eprint={2410.09486},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+}
+```
+
