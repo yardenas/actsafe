@@ -3,11 +3,14 @@ defaults:
   - override /environment: humanoid_bench
 
 training:
-  epochs: 100
+  epochs: 200
   safe: true
   action_repeat: 4
   parallel_envs: 5
+  safety_budget: 100
 
 agent:
   exploration_steps: 500000
   exploration_strategy: opax
+  safety_slack: 40
+
