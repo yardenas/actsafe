@@ -45,6 +45,22 @@ const { title, description, favicon, thumbnail } = Astro.props.frontmatter;
     class="p-6 pt-12 flex flex-col gap-4 items-center max-w-[65rem] m-auto prose prose-paper"
   >
     <slot />
+    <footer class="m-auto">
+      <p class="text-zinc-500 text-sm">
+        This page was built using <a
+          href="https://github.com/RomanHauksson/academic-project-astro-template"
+          >Roman Hauksson's academic project page template</a
+        >, which was adapted from <a
+          href="https://github.com/eliahuhorwitz/Academic-project-page-template"
+          >Eliahu Horwitz's template</a
+        >, which was adapted from <a href="https://nerfies.github.io/"
+          >Keunhong Park's project page for <i>Nerfies</i></a
+        >. It is licensed under a <a
+          href="http://creativecommons.org/licenses/by-sa/4.0/"
+          >Creative Commons Attribution-ShareAlike 4.0 International License</a
+        >.
+      </p>
+    </footer>
   </body>
 </html>
 
