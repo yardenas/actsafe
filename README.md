@@ -66,14 +66,13 @@ This will display all available options and configurations.
 
 If you use ActSafe in your research, please cite our work:
 ```bibtex
-@misc{as2024actsafeactiveexplorationsafety,
-      title={ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning}, 
-      author={Yarden As and Bhavya Sukhija and Lenart Treven and Carmelo Sferrazza and Stelian Coros and Andreas Krause},
-      year={2024},
-      eprint={2410.09486},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2410.09486}, 
+@inproceedings{
+   as2025actsafe,
+   title={ActSafe: Active Exploration with Safety Constraints for Reinforcement Learning},
+   author={Yarden As and Bhavya Sukhija and Lenart Treven and Carmelo Sferrazza and Stelian Coros and Andreas Krause},
+   booktitle={The Thirteenth International Conference on Learning Representations},
+   year={2025},
+   url={https://openreview.net/forum?id=aKRADWBJ1I}
 }
 ```
 
